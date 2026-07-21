@@ -6,8 +6,10 @@ from copy import deepcopy
 from typing import Any
 
 from .adapters import (
+    BasicClaimExtractor,
     BasicClaimVerifier,
     BasicEvidenceAnalyzer,
+    BasicStructuredClaimVerifier,
     IdentityRewriter,
     ScoreReranker,
 )
@@ -15,6 +17,7 @@ from .config import CadreConfig
 from .errors import ProviderError
 from .features import HeuristicFeatureProducer
 from .interfaces import (
+    ClaimExtractor,
     ClaimVerifier,
     EvidenceAnalyzer,
     FeatureProducer,
@@ -22,7 +25,9 @@ from .interfaces import (
     QueryRewriter,
     Reranker,
     Retriever,
+    StructuredClaimVerifier,
 )
+from .graphs import EvidenceGraph
 from .models import (
     Action,
     CadreResult,
@@ -54,6 +59,8 @@ class CadreEngine:
         reranker: Reranker | None = None,
         evidence_analyzer: EvidenceAnalyzer | None = None,
         claim_verifier: ClaimVerifier | None = None,
+        claim_extractor: ClaimExtractor | None = None,
+        structured_claim_verifier: StructuredClaimVerifier | None = None,
     ) -> None:
         self.config = config
         self.llm = llm
@@ -63,6 +70,8 @@ class CadreEngine:
         self.reranker = reranker or ScoreReranker()
         self.evidence_analyzer = evidence_analyzer or BasicEvidenceAnalyzer()
         self.claim_verifier = claim_verifier or BasicClaimVerifier()
+        self.claim_extractor = claim_extractor or BasicClaimExtractor()
+        self.structured_claim_verifier = structured_claim_verifier or BasicStructuredClaimVerifier()
         self.policy = SafeRoutingPolicy(config.policy)
         self.risk_models = risk_models or RiskModelBundle(
             {
@@ -234,10 +243,12 @@ class CadreEngine:
                             metadata=runtime_meta,
                         )
                     )
-                elif action is Action.GRAPH:
+                elif action is Action.EXPAND_GRAPH:
                     live_budget.consume(action)
                     # Graph construction is delegated to the evidence analyzer/feature producer.
                     runtime_meta["graph_requested"] = True
+                    evidence_graph = EvidenceGraph(documents)
+                    evidence_graph.expand(documents) # simulate expansion
                 elif action in {Action.GENERATE, Action.REGENERATE}:
                     live_budget.consume(action)
                     prompt = serialize_context(context.model_copy(update={"user": query}), documents)
@@ -255,12 +266,16 @@ class CadreEngine:
                             "unsupported_insufficient": 1.0
                         }
                     else:
-                        verification_state, verification_features = self.claim_verifier.verify(
-                            response,
-                            documents,
+                        evidence_graph = EvidenceGraph(documents)
+                        claims = self.claim_extractor.extract(response, metadata=runtime_meta)
+                        verification_state, verification_features, claim_edges = self.structured_claim_verifier.verify_claims(
+                            claims,
+                            evidence_graph,
                             metadata=runtime_meta,
                         )
                         runtime_meta["verification_features"] = verification_features
+                        runtime_meta["extracted_claims"] = [c.model_dump() for c in claims]
+                        runtime_meta["claim_evidence_edges"] = [e.model_dump() for e in claim_edges]
                 else:
                     raise RuntimeError(f"unsupported nonterminal action: {action}")
             except Exception as exc:

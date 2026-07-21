@@ -133,10 +133,13 @@ class MonotoneRiskHead:
                 float(full_features.get(name, 0.0) or 0.0)
                 for name in self.feature_names
             ]
-            probability = float(np.clip(np.mean(values), 0.0, 1.0))
+            raw_score = float(np.clip(np.mean(values), 0.0, 1.0))
+            probability = raw_score
         else:
-            probability = float(self.predict_proba([full_features])[0])
+            raw_score = float(self.predict_raw([full_features])[0])
+            probability = float(self.calibrator.predict([raw_score])[0])
         return RiskEstimate(
+            raw_score=raw_score,
             probability=probability,
             threshold=self.threshold,
             flagged=available and probability >= self.threshold,

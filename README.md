@@ -8,12 +8,6 @@ CADRE provides a configurable execution pipeline with independent risk estimatio
 
 ## Features
 
-- Four independent risk heads
-  - Instruction
-  - Retrieval
-  - Evidence
-  - Generation
-
 - Adaptive routing engine
 - Typed trust boundaries
 - Monotonic risk estimation
@@ -41,7 +35,7 @@ pip install cadre
 or
 
 ```bash
-pip install git+https://github.com/<org>/cadre.git
+pip install git+https://github.com/dipcb05/cadre.git
 ```
 
 ---
@@ -123,7 +117,7 @@ cadre/
 # Development
 
 ```bash
-git clone https://github.com/<org>/cadre.git
+git clone https://github.com/dipcb05/cadre.git
 
 cd cadre
 

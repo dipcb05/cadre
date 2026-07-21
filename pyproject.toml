@@ -3,7 +3,7 @@ requires = ["hatchling>=1.25"]
 build-backend = "hatchling.build"
 
 [project]
-name = "cadre-llm-security"
+name = "cadre"
 version = "0.1.0"
 description = "Calibration-aware risk estimation and adaptive routing for secure LLM and RAG systems."
 readme = "README.md"
@@ -48,9 +48,9 @@ openai = ["openai>=1.40"]
 sentence-transformers = ["sentence-transformers>=3.0"]
 
 [project.urls]
-Homepage = "https://github.com/your-org/cadre-llm-security"
-Repository = "https://github.com/your-org/cadre-llm-security"
-Issues = "https://github.com/your-org/cadre-llm-security/issues"
+Homepage = "https://github.com/dipcb05/cadre"
+Repository = "https://github.com/dipcb05/cadre"
+Issues = "https://github.com/dipcb05/cadre/issues"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/cadre"]

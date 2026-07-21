@@ -4,14 +4,17 @@ from collections.abc import Callable, Mapping, Sequence
 from typing import Any
 
 from .interfaces import (
+    ClaimExtractor,
     ClaimVerifier,
     EvidenceAnalyzer,
     LLMProvider,
     QueryRewriter,
     Reranker,
     Retriever,
+    StructuredClaimVerifier,
 )
 from .models import Document, EvidenceState
+from .graphs import ClaimNode, ClaimEvidenceEdge, ClaimEvidenceRelation, EvidenceGraph
 
 
 class SimpleLLM(LLMProvider):
@@ -114,3 +117,97 @@ class BasicClaimVerifier(ClaimVerifier):
             "unsupported_insufficient": 1.0 - support,
             "dependency_unsupported": 1.0 - support,
         }
+
+
+class BasicClaimExtractor(ClaimExtractor):
+    def extract(self, response: str, *, metadata: Mapping[str, Any]) -> list[ClaimNode]:
+        if not response.strip():
+            return []
+        # Basic heuristic sentence-based claim extractor
+        import re
+        sentences = re.split(r"(?<=[.!?])\s+", response)
+        claims = []
+        for idx, sentence in enumerate(sentences):
+            clean = sentence.strip()
+            if len(clean) > 5:
+                claims.append(ClaimNode(
+                    id=f"c_{idx}",
+                    text=clean,
+                    claim_type="factual",
+                    confidence=1.0,
+                ))
+        return claims
+
+
+class BasicStructuredClaimVerifier(StructuredClaimVerifier):
+    def verify_claims(
+        self,
+        claims: list[ClaimNode],
+        evidence_graph: EvidenceGraph,
+        *,
+        metadata: Mapping[str, Any],
+    ) -> tuple[EvidenceState, dict[str, float], list[ClaimEvidenceEdge]]:
+        evidence_docs = evidence_graph.documents()
+        if not claims or not evidence_docs:
+            return EvidenceState.INSUFFICIENT, {"unsupported_insufficient": 1.0}, []
+
+        evidence_text = " ".join(d.text for d in evidence_docs).lower()
+        edges = []
+        entailed_count = 0
+        contradicted_count = 0
+        
+        for claim in claims:
+            claim_terms = set(claim.text.lower().split())
+            if not claim_terms:
+                continue
+            
+            # Simple check for contradiction words + match
+            contradicts_evidence = any(
+                ("not" in claim.text.lower() and term in evidence_text) 
+                for term in claim_terms if len(term) > 3
+            )
+            
+            overlap = sum(1 for term in claim_terms if term in evidence_text) / len(claim_terms)
+            
+            if contradicts_evidence:
+                relation = ClaimEvidenceRelation.CONTRADICTED
+                contradicted_count += 1
+            elif overlap >= 0.3:
+                relation = ClaimEvidenceRelation.ENTAILED
+                entailed_count += 1
+            elif overlap >= 0.1:
+                relation = ClaimEvidenceRelation.PARTIALLY_SUPPORTED
+            else:
+                relation = ClaimEvidenceRelation.UNSUPPORTED
+
+            # Find matching document source for edge
+            for doc in evidence_docs:
+                doc_terms = set(doc.text.lower().split())
+                doc_overlap = len(claim_terms & doc_terms) / len(claim_terms) if claim_terms else 0.0
+                if doc_overlap > 0:
+                    edges.append(ClaimEvidenceEdge(
+                        claim_id=claim.id,
+                        evidence_id=doc.id,
+                        relation=relation,
+                        score=float(doc_overlap),
+                    ))
+
+        if contradicted_count > 0:
+            state = EvidenceState.CONTRADICTED
+        elif entailed_count / len(claims) >= 0.5:
+            state = EvidenceState.SUPPORTED
+        else:
+            state = EvidenceState.INSUFFICIENT
+
+        unsupported_ratio = sum(1 for e in edges if e.relation == ClaimEvidenceRelation.UNSUPPORTED) / max(1, len(edges))
+        contradicted_ratio = contradicted_count / len(claims)
+
+        features = {
+            "unsupported_insufficient": float(unsupported_ratio),
+            "unsupported_contradicted": float(contradicted_ratio),
+            "unsupported_conflicting": 0.0,
+            "dependency_unsupported": 0.0,
+        }
+
+        return state, features, edges
+

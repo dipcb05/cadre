@@ -16,8 +16,45 @@ from .models import (
     RiskBundle,
     RuntimeBudget,
     TrustedContext,
+    TrustLevel,
+    ContentOrigin,
+    Provenance,
+    MessageSegment,
 )
 from .risk import MonotoneRiskHead, RiskModelBundle
+from .graphs import (
+    EvidenceRelation,
+    EvidenceEdge,
+    EvidenceGraph,
+    ClaimEvidenceRelation,
+    ClaimNode,
+    ClaimEvidenceEdge,
+    ClaimGraph,
+)
+from .lineage import (
+    Lineage,
+    LineageRecord,
+    grouped_split,
+    assert_no_overlap,
+)
+from .artifacts import (
+    ModelArtifactManifest,
+    save_artifact,
+    load_artifact,
+    load_manifest,
+)
+from .interfaces import (
+    LLMProvider,
+    Retriever,
+    QueryRewriter,
+    Reranker,
+    EvidenceAnalyzer,
+    ClaimVerifier,
+    ClaimExtractor,
+    StructuredClaimVerifier,
+    FeatureProducer,
+)
+from .training import OfflineTrainer
 
 __all__ = [
     "Action",
@@ -39,4 +76,33 @@ __all__ = [
     "ThresholdCalibrationResult",
     "TrustedContext",
     "calibrate_complete_lineage_threshold",
+    "TrustLevel",
+    "ContentOrigin",
+    "Provenance",
+    "MessageSegment",
+    "EvidenceRelation",
+    "EvidenceEdge",
+    "EvidenceGraph",
+    "ClaimEvidenceRelation",
+    "ClaimNode",
+    "ClaimEvidenceEdge",
+    "ClaimGraph",
+    "Lineage",
+    "LineageRecord",
+    "grouped_split",
+    "assert_no_overlap",
+    "ModelArtifactManifest",
+    "save_artifact",
+    "load_artifact",
+    "load_manifest",
+    "LLMProvider",
+    "Retriever",
+    "QueryRewriter",
+    "Reranker",
+    "EvidenceAnalyzer",
+    "ClaimVerifier",
+    "ClaimExtractor",
+    "StructuredClaimVerifier",
+    "FeatureProducer",
+    "OfflineTrainer",
 ]

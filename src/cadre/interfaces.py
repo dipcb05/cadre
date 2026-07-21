@@ -2,9 +2,12 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from collections.abc import Mapping, Sequence
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from .models import Document, EvidenceState, Head, TrustedContext
+
+if TYPE_CHECKING:
+    from .graphs import ClaimEvidenceEdge, ClaimNode, EvidenceGraph
 
 
 class LLMProvider(ABC):
@@ -59,6 +62,24 @@ class ClaimVerifier(ABC):
         *,
         metadata: Mapping[str, Any],
     ) -> tuple[EvidenceState, dict[str, float]]:
+        raise NotImplementedError
+
+
+class ClaimExtractor(ABC):
+    @abstractmethod
+    def extract(self, response: str, *, metadata: Mapping[str, Any]) -> list[ClaimNode]:
+        raise NotImplementedError
+
+
+class StructuredClaimVerifier(ABC):
+    @abstractmethod
+    def verify_claims(
+        self,
+        claims: list[ClaimNode],
+        evidence_graph: EvidenceGraph,
+        *,
+        metadata: Mapping[str, Any],
+    ) -> tuple[EvidenceState, dict[str, float], list[ClaimEvidenceEdge]]:
         raise NotImplementedError
 
 
