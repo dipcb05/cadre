@@ -1,0 +1,177 @@
+# =========================
+# Python
+# =========================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+.eggs/
+pip-wheel-metadata/
+
+# Wheels
+*.whl
+
+# =========================
+# Virtual Environments
+# =========================
+.venv/
+venv/
+env/
+ENV/
+.python-version
+
+# =========================
+# Test / Coverage
+# =========================
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+.cache/
+
+# =========================
+# Type Checking
+# =========================
+.mypy_cache/
+.dmypy.json
+.pytype/
+.pyre/
+
+# =========================
+# Linting
+# =========================
+.ruff_cache/
+
+# =========================
+# Jupyter
+# =========================
+.ipynb_checkpoints/
+
+# =========================
+# IDE
+# =========================
+.vscode/
+.idea/
+*.iml
+
+# =========================
+# OS
+# =========================
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# =========================
+# Logs
+# =========================
+*.log
+logs/
+*.out
+*.err
+
+# =========================
+# Environment Variables
+# =========================
+.env
+.env.*
+!.env.example
+
+# =========================
+# Secrets / Keys
+# =========================
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+*.jks
+secrets/
+credentials/
+
+# =========================
+# Local Databases
+# =========================
+*.db
+*.sqlite
+*.sqlite3
+
+# =========================
+# Model Files
+# =========================
+models/
+checkpoints/
+weights/
+artifacts/
+
+# HuggingFace
+.cache/huggingface/
+huggingface_cache/
+
+# Sentence Transformers
+sentence_transformers/
+
+# =========================
+# Vector Databases
+# =========================
+qdrant_storage/
+chroma/
+chromadb/
+faiss/
+*.faiss
+
+# =========================
+# Temporary Files
+# =========================
+tmp/
+temp/
+*.tmp
+*.bak
+*.swp
+
+# =========================
+# Documentation Build
+# =========================
+docs/_build/
+site/
+
+# =========================
+# Local Runtime
+# =========================
+*.pid
+*.lock
+
+# =========================
+# Benchmark Outputs
+# =========================
+results/
+outputs/
+reports/
+evaluation/
+metrics/
+
+# =========================
+# Local Experiment Files
+# =========================
+wandb/
+mlruns/
+tensorboard/
+runs/
+
+# =========================
+# Generated Security Logs
+# =========================
+audit_logs/
+trace_logs/
+runtime_logs/
+
+# =========================
+# PyPI
+# =========================
+.pypirc
