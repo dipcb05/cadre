@@ -1,32 +1,52 @@
-# CADRE LLM Security
+# CADRE
 
-Reference implementation of a calibration-aware, four-head risk estimation and bounded adaptive routing architecture for secure LLM and RAG systems.
+A modular Python framework for building secure, risk-aware LLM and Retrieval-Augmented Generation (RAG) applications.
 
-The package separates:
+CADRE provides a configurable execution pipeline with independent risk estimation, adaptive routing, retrieval control, evidence validation, and provider-neutral interfaces.
 
-- instruction risk
-- retrieval risk
-- evidence risk
-- generation risk
+---
 
-It also provides:
+## Features
 
-- typed trust boundaries
-- monotone constrained risk heads
-- probability calibration
-- complete-lineage threshold calibration
-- evidence and claim graph utilities
-- finite-state adaptive policy routing
-- bounded corrective RAG execution
-- provider-neutral LLM, retriever, verifier, and feature interfaces
+- Four independent risk heads
+  - Instruction
+  - Retrieval
+  - Evidence
+  - Generation
 
-## Install
+- Adaptive routing engine
+- Typed trust boundaries
+- Monotonic risk estimation
+- Probability calibration
+- Threshold calibration
+- Evidence graph utilities
+- Claim graph utilities
+- Configurable security policies
+- Bounded execution budgets
+- Provider-neutral architecture
+- Pluggable feature extraction
+- Pluggable retrievers
+- Pluggable rerankers
+- Pluggable verifiers
+- Pluggable LLM providers
+
+---
+
+## Installation
 
 ```bash
-pip install cadre-llm-security
+pip install cadre
 ```
 
-## Minimal use
+or
+
+```bash
+pip install git+https://github.com/<org>/cadre.git
+```
+
+---
+
+## Quick Start
 
 ```python
 from cadre import (
@@ -35,23 +55,89 @@ from cadre import (
     RuntimeBudget,
     TrustedContext,
 )
-from cadre.adapters import SimpleLLM, InMemoryRetriever
+
+from cadre.adapters import (
+    SimpleLLM,
+    InMemoryRetriever,
+)
 
 engine = CadreEngine(
     config=CadreConfig.safe_default(),
-    llm=SimpleLLM(lambda prompt: "A grounded answer."),
+    llm=SimpleLLM(lambda _: "Grounded response."),
     retriever=InMemoryRetriever([]),
 )
 
 result = engine.run(
     TrustedContext(
         system="Answer only from trusted evidence.",
-        developer="Cite evidence IDs.",
-        user="What is the policy?",
+        developer="Cite retrieved documents.",
+        user="What is the refund policy?",
     ),
-    budget=RuntimeBudget(retrieval=2, generation=2, verification=1, tokens=4096),
+    budget=RuntimeBudget(),
 )
-print(result.status, result.response)
+
+print(result.status)
+print(result.response)
 ```
 
-The package is intentionally provider-neutral. Production deployments should replace built-in heuristic feature producers and adapters with frozen, versioned models calibrated on lineage-disjoint data.
+---
+
+# Components
+
+```
+cadre/
+├── adapters/
+├── calibration/
+├── config/
+├── engine/
+├── features/
+├── graphs/
+├── interfaces/
+├── models/
+├── policy/
+├── risk/
+└── serialization/
+```
+
+---
+
+# Supported Integrations
+
+- OpenAI
+- Anthropic
+- Google Gemini
+- Ollama
+- vLLM
+- HuggingFace Transformers
+- LangChain
+- LlamaIndex
+- Haystack
+- Qdrant
+- Pinecone
+- Weaviate
+- Chroma
+- pgvector
+
+---
+
+# Development
+
+```bash
+git clone https://github.com/<org>/cadre.git
+
+cd cadre
+
+pip install -e ".[dev]"
+
+pytest
+
+ruff check
+
+mypy src
+```
+
+---
+
+# License
+
+Apache-2.0
